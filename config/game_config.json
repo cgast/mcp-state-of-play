@@ -1,0 +1,197 @@
+{
+  "title": "The Mysterious Laboratory",
+  "description": "You find yourself in a strange laboratory filled with mysterious devices and ancient artifacts. Your goal is to escape by finding the master key.",
+  "start_room": "lab_entrance",
+  "global_flags": {
+    "power_on": false,
+    "security_disabled": false,
+    "master_key_assembled": false
+  },
+  "win_conditions": [
+    {
+      "type": "inventory_contains",
+      "item": "master_key",
+      "description": "Find and assemble the master key to escape"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "lab_entrance",
+      "name": "Laboratory Entrance",
+      "description": "A sterile white room with flickering fluorescent lights. There's a heavy metal door to the north marked 'AUTHORIZED PERSONNEL ONLY', and a smaller door to the east labeled 'STORAGE'. The air smells faintly of ozone and chemicals.",
+      "connections": {
+        "north": "main_lab",
+        "east": "storage_room"
+      },
+      "items": ["key_card"],
+      "npcs": [],
+      "state_flags": {}
+    },
+    {
+      "id": "main_lab",
+      "name": "Main Laboratory",
+      "description": "A vast laboratory filled with complex machinery, computer terminals, and bubbling beakers. Strange lights blink on various devices. There's an exit south back to the entrance, and a secure door to the west that requires a key card.",
+      "connections": {
+        "south": "lab_entrance",
+        "west": "secure_vault"
+      },
+      "items": ["power_cell"],
+      "npcs": ["scientist"],
+      "state_flags": {},
+      "access_requirements": {}
+    },
+    {
+      "id": "storage_room",
+      "name": "Storage Room",
+      "description": "A cluttered storage room filled with boxes, spare parts, and old equipment. Dust motes dance in the dim light from a single bulb. There's only one exit back west to the entrance.",
+      "connections": {
+        "west": "lab_entrance"
+      },
+      "items": ["flashlight", "wire_cutters"],
+      "npcs": [],
+      "state_flags": {}
+    },
+    {
+      "id": "secure_vault",
+      "name": "Secure Vault",
+      "description": "A high-security vault with reinforced walls and a sophisticated lock mechanism. The room hums with electronic equipment. Red warning lights flash ominously. There's only one exit back east to the main lab.",
+      "connections": {
+        "east": "main_lab"
+      },
+      "items": ["key_fragment_1", "key_fragment_2"],
+      "npcs": [],
+      "state_flags": {},
+      "access_requirements": {
+        "required_items": ["key_card"],
+        "required_flags": {
+          "power_on": true
+        }
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "key_card",
+      "name": "Security Key Card",
+      "description": "A plastic key card with a magnetic stripe. It's labeled 'LEVEL 2 ACCESS' and looks slightly worn.",
+      "location": "lab_entrance",
+      "takeable": true,
+      "useable": false,
+      "properties": {
+        "access_level": 2
+      },
+      "use_effects": {}
+    },
+    {
+      "id": "power_cell",
+      "name": "Power Cell",
+      "description": "A glowing blue power cell that hums with energy. It looks like it could power some kind of device.",
+      "location": "main_lab",
+      "takeable": true,
+      "useable": true,
+      "properties": {
+        "energy_level": 100
+      },
+      "use_effects": {
+        "set_flag": {
+          "flag": "power_on",
+          "value": true
+        },
+        "consume": {
+          "consumed": true
+        }
+      }
+    },
+    {
+      "id": "flashlight",
+      "name": "Flashlight",
+      "description": "A heavy-duty flashlight with a bright beam. It might be useful in dark places.",
+      "location": "storage_room",
+      "takeable": true,
+      "useable": true,
+      "properties": {
+        "battery_level": 75
+      },
+      "use_effects": {}
+    },
+    {
+      "id": "wire_cutters",
+      "name": "Wire Cutters",
+      "description": "Sharp wire cutters that look like they could cut through security wires.",
+      "location": "storage_room",
+      "takeable": true,
+      "useable": true,
+      "properties": {
+        "sharpness": "high"
+      },
+      "use_effects": {
+        "set_flag": {
+          "flag": "security_disabled",
+          "value": true
+        }
+      }
+    },
+    {
+      "id": "key_fragment_1",
+      "name": "Key Fragment A",
+      "description": "Half of what appears to be a master key. It's made of a strange, iridescent metal.",
+      "location": "secure_vault",
+      "takeable": true,
+      "useable": false,
+      "properties": {
+        "fragment_number": 1
+      },
+      "use_effects": {}
+    },
+    {
+      "id": "key_fragment_2",
+      "name": "Key Fragment B",
+      "description": "The other half of the master key. It perfectly complements the first fragment.",
+      "location": "secure_vault",
+      "takeable": true,
+      "useable": false,
+      "properties": {
+        "fragment_number": 2
+      },
+      "use_effects": {}
+    },
+    {
+      "id": "master_key",
+      "name": "Master Key",
+      "description": "A complete master key assembled from two fragments. It gleams with an otherworldly light and feels warm to the touch.",
+      "location": "assembled",
+      "takeable": true,
+      "useable": true,
+      "properties": {
+        "access_level": "master"
+      },
+      "use_effects": {
+        "win_game": true
+      }
+    }
+  ],
+  "npcs": [
+    {
+      "id": "scientist",
+      "name": "Dr. Chen",
+      "description": "A tired-looking scientist in a lab coat. She looks up from her work with concern in her eyes.",
+      "location": "main_lab",
+      "dialogue_state": "initial",
+      "dialogue_tree": {
+        "initial": {
+          "text": "Oh! You shouldn't be here. The lab is on lockdown. If you're trying to get out, you'll need the master key, but it was split into two fragments for security. They're locked in the vault, but you'll need power and the right access card.",
+          "next_state": "helpful"
+        },
+        "helpful": {
+          "text": "The power cell should be around here somewhere, and I think I saw a key card by the entrance. Be careful with the vault - the security system is quite advanced.",
+          "next_state": "worried"
+        },
+        "worried": {
+          "text": "I really hope you can find a way out. This place gives me the creeps after hours.",
+          "next_state": "worried"
+        }
+      },
+      "inventory": []
+    }
+  ]
+}

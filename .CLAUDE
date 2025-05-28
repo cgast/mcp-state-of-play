@@ -1,0 +1,330 @@
+# Build state-of-play: LLM-Powered Text Adventure MCP Server
+
+## Project Overview
+Create a minimal MCP (Model Context Protocol) server called "state-of-play" that manages the state of a text adventure game. The server acts as a centralized backend that an LLM can interact with to run Zork-style text adventures. When a game ends, it should generate a summary for publishing.
+
+## Core Architecture Requirements
+
+### Tech Stack
+- **Python 3.11+** as the primary language
+- **FastMCP** for the MCP server implementation
+- **Redis** for persistent state storage
+- **Docker Compose** for containerization
+- **FastAPI** for the minimal web interface
+- **Minimal dependencies** - avoid heavy frameworks
+
+### Project Structure
+```
+state-of-play/
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+├── src/
+│   ├── __init__.py
+│   ├── main.py              # MCP server entry point
+│   ├── game_engine.py       # Core game logic
+│   ├── state_manager.py     # Redis state management
+│   ├── web_interface.py     # FastAPI web server
+│   └── models/
+│       ├── __init__.py
+│       ├── game_state.py    # Pydantic models
+│       └── entities.py      # Room, Item, NPC models
+├── config/
+│   └── game_config.json    # Initial game configuration
+└── README.md
+```
+
+## Detailed Implementation Requirements
+
+### 1. Game State Management (`state_manager.py`)
+Create a Redis-backed state manager that handles:
+
+**Core Functions:**
+- `save_game_state(game_id: str, state: GameState)` - Persist entire game state
+- `load_game_state(game_id: str) -> GameState` - Restore game state
+- `get_world_state(game_id: str) -> dict` - Current world snapshot
+- `update_entity(game_id: str, entity_type: str, entity_id: str, data: dict)` - Update specific entities
+- `add_log_entry(game_id: str, entry: LogEntry)` - Track all game events
+- `get_game_history(game_id: str) -> List[LogEntry]` - Retrieve event log
+
+**Redis Key Structure:**
+- `game:{game_id}:state` - Complete game state JSON
+- `game:{game_id}:rooms` - Hash of all rooms
+- `game:{game_id}:items` - Hash of all items  
+- `game:{game_id}:npcs` - Hash of all NPCs
+- `game:{game_id}:players` - Hash of all players
+- `game:{game_id}:logs` - List of chronological events
+- `game:{game_id}:flags` - Global game flags
+
+### 2. Game Engine (`game_engine.py`)
+Implement the core game logic with these functions:
+
+**Player Actions:**
+- `move_player(game_id: str, player_id: str, direction: str) -> ActionResult`
+- `take_item(game_id: str, player_id: str, item_id: str) -> ActionResult` 
+- `drop_item(game_id: str, player_id: str, item_id: str) -> ActionResult`
+- `use_item(game_id: str, player_id: str, item_id: str, target: str = None) -> ActionResult`
+- `talk_to_npc(game_id: str, player_id: str, npc_id: str, message: str = None) -> ActionResult`
+- `look_around(game_id: str, player_id: str) -> str` - Get current room description
+- `check_inventory(game_id: str, player_id: str) -> List[dict]` - Player's items
+
+**Game Management:**
+- `start_new_game(scenario_config: dict, player_name: str = "Player") -> str` - Returns game_id
+- `end_game(game_id: str, outcome: str) -> dict` - Finalize and generate summary
+- `get_available_actions(game_id: str, player_id: str) -> List[str]` - Context-aware actions
+- `validate_action(game_id: str, action: str, context: dict) -> bool` - Check feasibility
+- `trigger_event(game_id: str, event_id: str, context: dict) -> ActionResult` - Handle story events
+
+**ActionResult Model:**
+```python
+@dataclass
+class ActionResult:
+    success: bool
+    message: str
+    state_changes: dict
+    triggered_events: List[str]
+    game_ended: bool = False
+```
+
+### 3. Data Models (`models/`)
+Create Pydantic models for type safety:
+
+**game_state.py:**
+```python
+class GameState(BaseModel):
+    game_id: str
+    title: str
+    description: str
+    current_turn: int
+    active: bool
+    players: Dict[str, Player]
+    rooms: Dict[str, Room] 
+    items: Dict[str, Item]
+    npcs: Dict[str, NPC]
+    global_flags: Dict[str, Any]
+    win_conditions: List[dict]
+    event_log: List[LogEntry]
+    created_at: datetime
+    last_action_at: datetime
+```
+
+**entities.py:**
+```python
+class Room(BaseModel):
+    id: str
+    name: str
+    description: str
+    connections: Dict[str, str]  # direction -> room_id
+    items: List[str]  # item_ids
+    npcs: List[str]   # npc_ids
+    state_flags: Dict[str, Any]
+    access_requirements: Dict[str, Any] = {}
+
+class Item(BaseModel):
+    id: str
+    name: str
+    description: str
+    location: str  # room_id or player_id or npc_id
+    takeable: bool
+    useable: bool
+    properties: Dict[str, Any]
+    use_effects: Dict[str, Any] = {}
+
+class NPC(BaseModel):
+    id: str
+    name: str
+    description: str
+    location: str  # room_id
+    dialogue_state: str
+    dialogue_tree: Dict[str, Any]
+    inventory: List[str]
+
+class Player(BaseModel):
+    id: str
+    name: str
+    location: str  # room_id
+    inventory: List[str]  # item_ids
+    stats: Dict[str, Any] = {}
+```
+
+### 4. MCP Server (`main.py`)
+Implement MCP tools using FastMCP:
+
+**Required MCP Tools:**
+```python
+@mcp.tool()
+def move_player(direction: str) -> str:
+    """Move the player in a given direction (north, south, east, west, up, down)"""
+
+@mcp.tool() 
+def look_around() -> str:
+    """Get a description of the current room and its contents"""
+
+@mcp.tool()
+def take_item(item_name: str) -> str:
+    """Take an item from the current room"""
+
+@mcp.tool()
+def drop_item(item_name: str) -> str:
+    """Drop an item from inventory into current room"""
+
+@mcp.tool()
+def use_item(item_name: str, target: str = None) -> str:
+    """Use an item, optionally on a target"""
+
+@mcp.tool()
+def talk_to_npc(npc_name: str, message: str = None) -> str:
+    """Talk to an NPC in the current room"""
+
+@mcp.tool()
+def check_inventory() -> str:
+    """List items in player's inventory"""
+
+@mcp.tool()
+def get_available_actions() -> str:
+    """Get list of available actions in current context"""
+
+@mcp.tool()
+def get_game_status() -> str:
+    """Get current game state summary"""
+
+@mcp.tool()
+def start_new_game(player_name: str = "Player") -> str:
+    """Start a new game with given player name"""
+
+@mcp.tool()
+def end_game() -> str:
+    """End the current game and generate summary"""
+```
+
+**Implementation Details:**
+- Use a single active game session per MCP connection
+- All tools should return human-readable strings suitable for LLM consumption
+- Include error handling with descriptive messages
+- Log all actions automatically
+- Auto-start game from config file on server startup
+
+### 5. Web Interface (`web_interface.py`)
+Create a minimal FastAPI web server with a single page showing game state:
+
+**Endpoints:**
+- `GET /` - Game state dashboard (HTML page)
+- `GET /api/state` - JSON game state
+- `GET /api/logs` - JSON game event log
+- `POST /api/reset` - Reset game to initial state
+
+**Dashboard Requirements:**
+- Single HTML page with embedded CSS/JS (no external dependencies)
+- Real-time game state display (auto-refresh every 5 seconds)
+- Show current player location, inventory, and room description
+- Display all rooms with their contents (items/NPCs)
+- Show recent game events/actions
+- Simple, clean layout with minimal styling
+- Mobile-friendly responsive design
+
+### 6. Configuration (`config/game_config.json`)
+Use the Zork-like game configuration provided earlier. The server should:
+- Load this file on startup
+- Initialize a default game automatically
+- Support hot-reloading of config (optional)
+
+### 7. Docker Setup
+
+**docker-compose.yml:**
+```yaml
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  state-of-play:
+    build: .
+    ports:
+      - "8000:8000"    # Web interface
+      - "3000:3000"    # MCP server
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MCP_PORT=3000
+      - WEB_PORT=8000
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+
+volumes:
+  redis_data:
+```
+
+**Dockerfile:**
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY src/ ./src/
+COPY config/ ./config/
+
+EXPOSE 3000 8000
+
+CMD ["python", "-m", "src.main"]
+```
+
+## Implementation Guidelines
+
+### Error Handling
+- All functions should handle errors gracefully
+- Return user-friendly error messages
+- Log errors for debugging
+- Never crash the server on invalid input
+
+### State Consistency
+- All state changes must be atomic
+- Use Redis transactions where needed
+- Validate state before saving
+- Implement rollback on failed operations
+
+### Performance
+- Cache frequently accessed data
+- Use Redis pipelines for bulk operations
+- Minimize JSON serialization overhead
+- Keep memory usage minimal
+
+### Code Quality
+- Use type hints throughout
+- Add comprehensive docstrings
+- Follow PEP 8 style guidelines
+- Include basic unit tests for core functions
+
+## Startup Behavior
+1. Server starts and connects to Redis
+2. Loads game configuration from `config/game_config.json`
+3. Initializes a new game automatically with game_id "default"
+4. Starts both MCP server (port 3000) and web interface (port 8000)
+5. Web interface shows the initial game state
+6. MCP tools are ready to accept commands
+
+## Expected Output
+After successful implementation:
+- `docker-compose up` starts the entire system
+- Web interface at `http://localhost:8000` shows live game state
+- MCP server at `localhost:3000` accepts tool calls
+- LLM can interact with the game through MCP tools
+- All game state persists in Redis
+- Complete game logs are maintained for summary generation
+
+## Testing Instructions
+Include a simple test script that:
+1. Starts a new game
+2. Performs basic actions (move, take, use items)
+3. Talks to NPCs
+4. Verifies state persistence
+5. Generates end-game summary
+
+The final implementation should be a complete, working text adventure backend that an LLM can control through MCP tools, with a simple web interface for monitoring game state.

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    #ports:
+    #  - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  state-of-play:
+    build: .
+    ports:
+      - "8000:8000"    # Web interface
+      - "3000:3000"    # MCP server
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MCP_PORT=3000
+      - WEB_PORT=8000
+      - RUN_MODE=web
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+volumes:
+  redis_data:
