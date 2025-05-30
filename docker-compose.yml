@@ -14,18 +14,54 @@ services:
     build: .
     ports:
       - "8000:8000"    # Web interface
-      - "3000:3000"    # MCP server
+      - "8001:8001"    # MCP HTTP server
     depends_on:
       - redis
     environment:
       - REDIS_URL=redis://redis:6379
-      - MCP_PORT=3000
+      - MCP_PORT=8001
       - WEB_PORT=8000
       - RUN_MODE=web
     volumes:
       - ./config:/app/config
       - ./logs:/app/logs
     restart: unless-stopped
+
+  # Separate service for MCP HTTP only
+  mcp-server:
+    build: .
+    ports:
+      - "8001:8001"    # MCP HTTP server
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MCP_PORT=8001
+      - RUN_MODE=mcp-http
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+    profiles: ["mcp-only"]
+
+  # Service for all servers (web + MCP HTTP)
+  all-servers:
+    build: .
+    ports:
+      - "8000:8000"    # Web interface
+      - "8001:8001"    # MCP HTTP server
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MCP_PORT=8001
+      - WEB_PORT=8000
+      - RUN_MODE=all
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+    profiles: ["all-services"]
 
 volumes:
   redis_data:

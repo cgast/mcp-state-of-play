@@ -5,6 +5,7 @@ A minimal MCP (Model Context Protocol) server that manages the state of text adv
 ## Features
 
 - **MCP Server**: Exposes game actions as MCP tools for LLM interaction
+- **Multiple Transport Protocols**: Supports both stdio and streamable-http transports
 - **Redis State Management**: Persistent game state storage
 - **Web Dashboard**: Real-time game state monitoring
 - **Docker Support**: Easy deployment with Docker Compose
@@ -46,10 +47,18 @@ docker-compose up -d
 
 3. Access the web dashboard at `http://localhost:8000`
 
-4. To run the MCP server separately (for LLM interaction):
+4. Access the MCP server over HTTP at `http://localhost:8001/mcp`
+
+5. To run different server modes:
 ```bash
-# Set environment for MCP mode
+# MCP server with stdio transport (for local LLM clients)
 RUN_MODE=mcp python -m src.main
+
+# MCP server with HTTP transport (for remote LLM clients)
+RUN_MODE=mcp-http python -m src.main
+
+# All servers (web + MCP HTTP)
+RUN_MODE=all python -m src.main
 ```
 
 ### Local Development
@@ -78,9 +87,16 @@ pip install -r requirements.txt
 python -m src.main
 ```
 
-Or run the MCP server for LLM interaction:
+Run different MCP server modes:
 ```bash
+# MCP with stdio transport (local clients)
 RUN_MODE=mcp python -m src.main
+
+# MCP with HTTP transport (remote clients)
+RUN_MODE=mcp-http python -m src.main
+
+# All servers together
+RUN_MODE=all python -m src.main
 ```
 
 ## MCP Tools
@@ -136,9 +152,30 @@ Game state is stored in Redis with these key patterns:
 ## Environment Variables
 
 - `REDIS_URL` - Redis connection URL (default: `redis://localhost:6379`)
-- `MCP_PORT` - MCP server port (default: `3000`)
+- `MCP_PORT` - MCP HTTP server port (default: `8001`)
 - `WEB_PORT` - Web interface port (default: `8000`)
-- `RUN_MODE` - Server mode: `web` (default), `mcp`, or `combined`
+- `RUN_MODE` - Server mode: `web` (default), `mcp`, `mcp-http`, `combined`, or `all`
+
+### Run Modes
+
+- `web` - Web dashboard only (default)
+- `mcp` - MCP server with stdio transport (for local clients)
+- `mcp-http` - MCP server with streamable-http transport (for remote clients)
+- `combined` - Web dashboard + MCP stdio
+- `all` - Web dashboard + MCP HTTP server
+
+### Docker Compose Profiles
+
+```bash
+# Default: web dashboard only
+docker-compose up
+
+# MCP HTTP server only
+docker-compose --profile mcp-only up mcp-server
+
+# Web dashboard + MCP HTTP server
+docker-compose --profile all-services up all-servers
+```
 
 ## Development
 

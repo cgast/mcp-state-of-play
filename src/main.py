@@ -285,6 +285,18 @@ def run_mcp_server():
     mcp.run(transport="stdio")
 
 
+def run_mcp_http_server():
+    """Run MCP server with streamable-http transport"""
+    # Initialize game engine
+    initialize_game_engine()
+    
+    # Get MCP port from environment
+    mcp_port = int(os.getenv("MCP_PORT", "8001"))
+    
+    logger.info(f"Starting MCP server with streamable-http transport on port {mcp_port}")
+    mcp.run(transport="streamable-http", port=mcp_port, host="0.0.0.0", path="/mcp")
+
+
 def run_web_server():
     """Run web server only"""
     # Initialize game engine
@@ -303,7 +315,7 @@ def run_web_server():
 
 
 async def run_combined_servers():
-    """Run both MCP and web servers concurrently"""
+    """Run both MCP (stdio) and web servers concurrently"""
     # Initialize game engine
     initialize_game_engine()
     
@@ -327,13 +339,52 @@ async def run_combined_servers():
         logger.info("Shutting down servers...")
 
 
+async def run_all_servers():
+    """Run MCP (HTTP), web servers, and MCP stdio concurrently"""
+    # Initialize game engine
+    initialize_game_engine()
+    
+    # Create web app
+    web_app = create_web_app(state_manager)
+    
+    # Get ports from environment
+    web_port = int(os.getenv("WEB_PORT", "8000"))
+    mcp_port = int(os.getenv("MCP_PORT", "8001"))
+    
+    logger.info(f"Starting web server on port {web_port}")
+    logger.info(f"Starting MCP HTTP server on port {mcp_port}")
+    
+    import uvicorn
+    
+    # Start web server
+    web_config = uvicorn.Config(web_app, host="0.0.0.0", port=web_port, log_level="info")
+    web_server = uvicorn.Server(web_config)
+    
+    # Create MCP HTTP server task
+    async def mcp_http_task():
+        mcp.run(transport="streamable-http", port=mcp_port, host="0.0.0.0", path="/mcp")
+    
+    try:
+        # Run both servers concurrently
+        await asyncio.gather(
+            web_server.serve(),
+            mcp_http_task()
+        )
+    except KeyboardInterrupt:
+        logger.info("Shutting down servers...")
+
+
 if __name__ == "__main__":
     # Check if we should run in MCP mode or web mode
     mode = os.getenv("RUN_MODE", "web")
     
     if mode == "mcp":
         run_mcp_server()
+    elif mode == "mcp-http":
+        run_mcp_http_server()
     elif mode == "combined":
         asyncio.run(run_combined_servers())
+    elif mode == "all":
+        asyncio.run(run_all_servers())
     else:
         run_web_server()
