@@ -243,6 +243,9 @@ class MCPGameServer:
         self.state_manager = StateManager(redis_url)
         self.game_engine = GameEngine(self.state_manager)
         
+        # Log which config file is being used
+        logger.info(f"Server {self.server_id} ({self.server_name}) loading config from: {self.game_config_path}")
+        
         # Load game configuration
         scenario_config = self._load_game_config()
         

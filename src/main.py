@@ -33,6 +33,7 @@ def initialize_game_engine():
     
     # Load game configuration
     config_path = os.getenv("GAME_CONFIG_PATH", "config/game_config.json")
+    logger.info(f"Loading game configuration from: {config_path}")
     if os.path.exists(config_path):
         with open(config_path, 'r') as f:
             scenario_config = json.load(f)
