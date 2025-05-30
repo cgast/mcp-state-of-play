@@ -13,8 +13,8 @@ services:
   # Multi-MCP Dashboard (HTTP only)
   dashboard:
     build: .
-    ports:
-      - "8000:8000"    # Dashboard web interface
+#    ports:
+#      - "8000:8000"    # Dashboard web interface
     depends_on:
       - redis
     environment:
@@ -31,8 +31,8 @@ services:
   # MCP Server 1 - Laboratory Adventure
   mcp-server-1:
     build: .
-    ports:
-      - "8001:8001"    # MCP HTTP server
+#    ports:
+#      - "8001:8001"    # MCP HTTP server
     depends_on:
       - redis
       - dashboard
@@ -54,8 +54,8 @@ services:
   # MCP Server 2 - Simple Adventure (with minimal config)
   mcp-server-2:
     build: .
-    ports:
-      - "8002:8001"    # MCP HTTP server on different host port
+#    ports:
+#      - "8002:8001"    # MCP HTTP server on different host port
     depends_on:
       - redis
       - dashboard
@@ -77,8 +77,8 @@ services:
   # MCP Server 3 - Dungeon Crawler
   mcp-server-3:
     build: .
-    ports:
-      - "8003:8001"    # MCP HTTP server on different host port
+#    ports:
+#      - "8003:8001"    # MCP HTTP server on different host port
     depends_on:
       - redis
       - dashboard

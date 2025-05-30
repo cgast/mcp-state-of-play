@@ -291,12 +291,44 @@ class MCPGameServer:
         mcp_port = int(os.getenv("MCP_PORT", "8001"))
         
         logger.info(f"Starting MCP server {self.server_id} ({self.server_name}) on port {mcp_port}")
-        
-        # Note: Dashboard registration will be done manually for now
         logger.info(f"MCP server running at http://0.0.0.0:{mcp_port}/mcp")
+        
+        # Register with dashboard in background using subprocess
+        self._register_with_dashboard_async()
         
         # Run MCP server
         self.mcp.run(transport="streamable-http", port=mcp_port, host="0.0.0.0", path="/mcp")
+
+    def _register_with_dashboard_async(self):
+        """Register with dashboard in a background process"""
+        try:
+            import subprocess
+            import threading
+            
+            def register():
+                try:
+                    # Wait a bit for the server to fully start
+                    time.sleep(3)
+                    
+                    # Use the registration script
+                    result = subprocess.run([
+                        "python3", "/app/register_server.py"
+                    ], capture_output=True, text=True, timeout=60)
+                    
+                    if result.returncode == 0:
+                        logger.info(f"Successfully registered server {self.server_id} with dashboard")
+                    else:
+                        logger.warning(f"Failed to register with dashboard: {result.stderr}")
+                        
+                except Exception as e:
+                    logger.warning(f"Registration process failed: {e}")
+            
+            # Start registration in background thread
+            registration_thread = threading.Thread(target=register, daemon=True)
+            registration_thread.start()
+            
+        except Exception as e:
+            logger.warning(f"Could not start registration process: {e}")
 
 
 def run_mcp_server():
