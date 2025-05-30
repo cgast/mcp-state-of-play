@@ -1,0 +1,229 @@
+{
+  "title": "Dungeon Crawler",
+  "description": "A dangerous dungeon filled with monsters and traps. Fight your way to the bottom and defeat the dragon!",
+  "start_room": "entrance",
+  "global_flags": {
+    "torch_lit": false,
+    "dragon_defeated": false,
+    "sword_empowered": false
+  },
+  "win_conditions": [
+    {
+      "type": "flag_set",
+      "flag": "dragon_defeated",
+      "description": "Defeat the dragon to win the game"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "entrance",
+      "name": "Dungeon Entrance",
+      "description": "You stand before the dark entrance to an ancient dungeon. Stone steps lead down into the shadows. There's a rusty sword embedded in a stone near the entrance.",
+      "connections": {
+        "down": "hallway"
+      },
+      "items": ["rusty_sword", "torch"],
+      "npcs": [],
+      "state_flags": {}
+    },
+    {
+      "id": "hallway",
+      "name": "Dark Hallway",
+      "description": "A long, dark hallway with damp stone walls. You can hear strange noises echoing from deeper in the dungeon. Passages lead north and south, and stairs go back up to the entrance.",
+      "connections": {
+        "up": "entrance",
+        "north": "armory",
+        "south": "treasure_chamber"
+      },
+      "items": [],
+      "npcs": ["skeleton"],
+      "state_flags": {}
+    },
+    {
+      "id": "armory",
+      "name": "Ancient Armory",
+      "description": "An old armory with weapon racks lining the walls. Most of the weapons have rusted away, but there's a magical shrine in the center that glows with mystical energy.",
+      "connections": {
+        "south": "hallway",
+        "east": "dragon_lair"
+      },
+      "items": ["magic_potion"],
+      "npcs": ["ghost_warrior"],
+      "state_flags": {}
+    },
+    {
+      "id": "treasure_chamber",
+      "name": "Treasure Chamber",
+      "description": "A chamber filled with ancient treasures and gold coins scattered across the floor. A passage leads north back to the hallway, and a heavily secured door leads east.",
+      "connections": {
+        "north": "hallway",
+        "east": "dragon_lair"
+      },
+      "items": ["healing_potion", "gold_coins"],
+      "npcs": [],
+      "state_flags": {},
+      "access_requirements": {
+        "east": {
+          "required_flags": {
+            "sword_empowered": true
+          }
+        }
+      }
+    },
+    {
+      "id": "dragon_lair",
+      "name": "Dragon's Lair",
+      "description": "A massive cavern with a high ceiling. Ancient bones litter the floor, and treasure is piled in every corner. In the center of the room, a massive red dragon sleeps on a bed of gold.",
+      "connections": {
+        "west": "treasure_chamber",
+        "north": "armory"
+      },
+      "items": ["dragon_treasure"],
+      "npcs": ["red_dragon"],
+      "state_flags": {}
+    }
+  ],
+  "items": [
+    {
+      "id": "rusty_sword",
+      "name": "Rusty Sword",
+      "description": "An old, rusty sword that has seen better days. It might be useful in combat.",
+      "location": "entrance",
+      "takeable": true,
+      "useable": true,
+      "properties": {
+        "damage": 5
+      },
+      "use_effects": {}
+    },
+    {
+      "id": "torch",
+      "name": "Torch",
+      "description": "A wooden torch that could provide light in dark places.",
+      "location": "entrance",
+      "takeable": true,
+      "useable": true,
+      "properties": {},
+      "use_effects": {
+        "set_flag": {
+          "flag": "torch_lit",
+          "value": true
+        }
+      }
+    },
+    {
+      "id": "magic_potion",
+      "name": "Magic Potion",
+      "description": "A glowing blue potion that radiates magical energy. It might enhance your weapons.",
+      "location": "armory",
+      "takeable": true,
+      "useable": true,
+      "properties": {},
+      "use_effects": {
+        "set_flag": {
+          "flag": "sword_empowered",
+          "value": true
+        },
+        "consume": {
+          "consumed": true
+        }
+      }
+    },
+    {
+      "id": "healing_potion",
+      "name": "Healing Potion",
+      "description": "A red potion that glows with warm light. It looks like it could restore health.",
+      "location": "treasure_chamber",
+      "takeable": true,
+      "useable": true,
+      "properties": {
+        "healing": 20
+      },
+      "use_effects": {
+        "consume": {
+          "consumed": true
+        }
+      }
+    },
+    {
+      "id": "gold_coins",
+      "name": "Gold Coins",
+      "description": "A handful of ancient gold coins that still gleam despite their age.",
+      "location": "treasure_chamber",
+      "takeable": true,
+      "useable": false,
+      "properties": {
+        "value": 100
+      },
+      "use_effects": {}
+    },
+    {
+      "id": "dragon_treasure",
+      "name": "Dragon's Hoard",
+      "description": "An enormous pile of treasure that the dragon has been guarding for centuries.",
+      "location": "dragon_lair",
+      "takeable": true,
+      "useable": false,
+      "properties": {
+        "value": 10000
+      },
+      "use_effects": {}
+    }
+  ],
+  "npcs": [
+    {
+      "id": "skeleton",
+      "name": "Undead Skeleton",
+      "description": "A reanimated skeleton warrior that guards the hallway. Its bones clatter as it moves.",
+      "location": "hallway",
+      "dialogue_state": "hostile",
+      "dialogue_tree": {
+        "hostile": {
+          "text": "*The skeleton rattles menacingly and prepares to attack!*",
+          "next_state": "hostile"
+        }
+      },
+      "inventory": []
+    },
+    {
+      "id": "ghost_warrior",
+      "name": "Ghost Warrior",
+      "description": "The spectral form of an ancient warrior who once defended this place.",
+      "location": "armory",
+      "dialogue_state": "initial",
+      "dialogue_tree": {
+        "initial": {
+          "text": "Mortal... you seek to challenge the dragon? Your weapon is weak. Use the magic potion to empower it, but beware - the dragon is cunning and powerful.",
+          "next_state": "warning"
+        },
+        "warning": {
+          "text": "The dragon will not fall easily. Make sure you are well prepared before entering its lair.",
+          "next_state": "warning"
+        }
+      },
+      "inventory": []
+    },
+    {
+      "id": "red_dragon",
+      "name": "Ancient Red Dragon",
+      "description": "A massive, ancient red dragon with scales like molten metal and eyes like burning coals.",
+      "location": "dragon_lair",
+      "dialogue_state": "sleeping",
+      "dialogue_tree": {
+        "sleeping": {
+          "text": "*The dragon opens one enormous eye and regards you with ancient wisdom and malice* So, another would-be hero comes to steal my treasure? You are brave, but foolish.",
+          "next_state": "awakened"
+        },
+        "awakened": {
+          "text": "*The dragon roars, flames dancing around its jaws* Face me in combat if you dare, but know that I have slain a thousand heroes before you!",
+          "next_state": "combat"
+        },
+        "combat": {
+          "text": "*The dragon breathes fire and prepares for battle*",
+          "next_state": "combat"
+        }
+      },
+      "inventory": []
+    }
+  ]
+}

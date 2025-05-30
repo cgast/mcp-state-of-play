@@ -3,18 +3,107 @@ version: '3.8'
 services:
   redis:
     image: redis:7-alpine
-    #ports:
-    #  - "6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
     restart: unless-stopped
+    networks:
+      - mcp-network
 
+  # Multi-MCP Dashboard (HTTP only)
+  dashboard:
+    build: .
+    ports:
+      - "8000:8000"    # Dashboard web interface
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - WEB_PORT=8000
+      - RUN_MODE=dashboard
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # MCP Server 1 - Laboratory Adventure
+  mcp-server-1:
+    build: .
+    ports:
+      - "8001:8001"    # MCP HTTP server
+    depends_on:
+      - redis
+      - dashboard
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MCP_PORT=8001
+      - RUN_MODE=mcp-server
+      - SERVER_ID=server1
+      - SERVER_NAME=Laboratory Adventure
+      - GAME_CONFIG_PATH=config/game_config.json
+      - REGISTRY_URL=http://dashboard:8000
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # MCP Server 2 - Simple Adventure (with minimal config)
+  mcp-server-2:
+    build: .
+    ports:
+      - "8002:8001"    # MCP HTTP server on different host port
+    depends_on:
+      - redis
+      - dashboard
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MCP_PORT=8001
+      - RUN_MODE=mcp-server
+      - SERVER_ID=server2
+      - SERVER_NAME=Simple Adventure
+      - GAME_CONFIG_PATH=config/simple_game.json
+      - REGISTRY_URL=http://dashboard:8000
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # MCP Server 3 - Dungeon Crawler
+  mcp-server-3:
+    build: .
+    ports:
+      - "8003:8001"    # MCP HTTP server on different host port
+    depends_on:
+      - redis
+      - dashboard
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MCP_PORT=8001
+      - RUN_MODE=mcp-server
+      - SERVER_ID=server3
+      - SERVER_NAME=Dungeon Crawler
+      - GAME_CONFIG_PATH=config/dungeon_config.json
+      - REGISTRY_URL=http://dashboard:8000
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - mcp-network
+    profiles: ["full-demo"]
+
+  # Legacy combined service (for backward compatibility)
   state-of-play:
     build: .
     ports:
-      - "8000:8000"    # Web interface
-      - "8001:8001"    # MCP HTTP server
+      - "9000:8000"    # Web interface on different port
+      - "9001:8001"    # MCP HTTP server on different port
     depends_on:
       - redis
     environment:
@@ -26,42 +115,13 @@ services:
       - ./config:/app/config
       - ./logs:/app/logs
     restart: unless-stopped
-
-  # Separate service for MCP HTTP only
-  mcp-server:
-    build: .
-    ports:
-      - "8001:8001"    # MCP HTTP server
-    depends_on:
-      - redis
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - MCP_PORT=8001
-      - RUN_MODE=mcp-http
-    volumes:
-      - ./config:/app/config
-      - ./logs:/app/logs
-    restart: unless-stopped
-    profiles: ["mcp-only"]
-
-  # Service for all servers (web + MCP HTTP)
-  all-servers:
-    build: .
-    ports:
-      - "8000:8000"    # Web interface
-      - "8001:8001"    # MCP HTTP server
-    depends_on:
-      - redis
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - MCP_PORT=8001
-      - WEB_PORT=8000
-      - RUN_MODE=all
-    volumes:
-      - ./config:/app/config
-      - ./logs:/app/logs
-    restart: unless-stopped
-    profiles: ["all-services"]
+    networks:
+      - mcp-network
+    profiles: ["legacy"]
 
 volumes:
   redis_data:
+
+networks:
+  mcp-network:
+    driver: bridge

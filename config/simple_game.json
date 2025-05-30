@@ -1,0 +1,110 @@
+{
+  "title": "Simple Adventure",
+  "description": "A basic text adventure game with a simple room structure.",
+  "start_room": "meadow",
+  "global_flags": {
+    "door_unlocked": false
+  },
+  "win_conditions": [
+    {
+      "type": "reach_room",
+      "room": "treasure_room",
+      "description": "Find the treasure room to win"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "meadow",
+      "name": "Sunny Meadow",
+      "description": "You stand in a beautiful meadow filled with wildflowers. A dirt path leads north to a small cottage.",
+      "connections": {
+        "north": "cottage"
+      },
+      "items": ["stick"],
+      "npcs": [],
+      "state_flags": {}
+    },
+    {
+      "id": "cottage",
+      "name": "Cozy Cottage",
+      "description": "A quaint cottage with a thatched roof. There's a locked door to the east and a garden path to the south.",
+      "connections": {
+        "south": "meadow",
+        "east": "treasure_room"
+      },
+      "items": ["key"],
+      "npcs": ["old_woman"],
+      "state_flags": {},
+      "access_requirements": {
+        "east": {
+          "required_items": ["key"]
+        }
+      }
+    },
+    {
+      "id": "treasure_room",
+      "name": "Treasure Room",
+      "description": "A small room filled with glittering treasures and ancient artifacts. You have found what you were looking for!",
+      "connections": {
+        "west": "cottage"
+      },
+      "items": ["treasure"],
+      "npcs": [],
+      "state_flags": {}
+    }
+  ],
+  "items": [
+    {
+      "id": "stick",
+      "name": "Wooden Stick",
+      "description": "A sturdy wooden stick that might be useful.",
+      "location": "meadow",
+      "takeable": true,
+      "useable": true,
+      "properties": {},
+      "use_effects": {}
+    },
+    {
+      "id": "key",
+      "name": "Rusty Key",
+      "description": "An old rusty key that looks like it might open something.",
+      "location": "cottage",
+      "takeable": true,
+      "useable": false,
+      "properties": {},
+      "use_effects": {}
+    },
+    {
+      "id": "treasure",
+      "name": "Golden Treasure",
+      "description": "A magnificent golden treasure that sparkles in the light.",
+      "location": "treasure_room",
+      "takeable": true,
+      "useable": false,
+      "properties": {
+        "value": 1000
+      },
+      "use_effects": {}
+    }
+  ],
+  "npcs": [
+    {
+      "id": "old_woman",
+      "name": "Old Woman",
+      "description": "A kind elderly woman with twinkling eyes.",
+      "location": "cottage",
+      "dialogue_state": "initial",
+      "dialogue_tree": {
+        "initial": {
+          "text": "Welcome to my cottage, traveler! I see you're looking for adventure. The treasure room is locked, but I believe the key is around here somewhere.",
+          "next_state": "helpful"
+        },
+        "helpful": {
+          "text": "Look around carefully - the key should be in this very room!",
+          "next_state": "helpful"
+        }
+      },
+      "inventory": []
+    }
+  ]
+}

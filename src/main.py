@@ -382,6 +382,14 @@ if __name__ == "__main__":
         run_mcp_server()
     elif mode == "mcp-http":
         run_mcp_http_server()
+    elif mode == "mcp-server":
+        # Run standalone MCP server
+        from .mcp_server import run_mcp_server as run_standalone_mcp
+        run_standalone_mcp()
+    elif mode == "dashboard":
+        # Run multi-MCP dashboard
+        from .dashboard import run_dashboard
+        run_dashboard()
     elif mode == "combined":
         asyncio.run(run_combined_servers())
     elif mode == "all":
