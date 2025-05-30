@@ -32,7 +32,7 @@ def initialize_game_engine():
     game_engine = GameEngine(state_manager)
     
     # Load game configuration
-    config_path = "config/game_config.json"
+    config_path = os.getenv("GAME_CONFIG_PATH", "config/game_config.json")
     if os.path.exists(config_path):
         with open(config_path, 'r') as f:
             scenario_config = json.load(f)
@@ -205,7 +205,7 @@ def start_new_game(player_name: str = "Player") -> str:
         return "Game engine not initialized"
     
     # Load configuration
-    config_path = "config/game_config.json"
+    config_path = os.getenv("GAME_CONFIG_PATH", "config/game_config.json")
     scenario_config = {}
     
     if os.path.exists(config_path):
