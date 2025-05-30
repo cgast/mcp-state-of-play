@@ -37,6 +37,11 @@ class MCPDashboard:
             """Multi-server dashboard homepage"""
             return self._get_homepage_html()
 
+        @self.app.get("/about", response_class=HTMLResponse)
+        async def about_page():
+            """About page with project information"""
+            return self._get_about_html()
+
         @self.app.get("/server/{server_id}", response_class=HTMLResponse)
         async def server_view(server_id: str):
             """Individual server state view"""
@@ -179,9 +184,58 @@ class MCPDashboard:
                 
                 .subtitle {
                     text-align: center;
-                    margin-bottom: 40px;
+                    margin-bottom: 30px;
                     color: #888;
                     font-size: 1.2em;
+                }
+                
+                .intro-section {
+                    background-color: #2a2a2a;
+                    border: 1px solid #444;
+                    border-radius: 8px;
+                    padding: 25px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+                }
+                
+                .intro-text p {
+                    margin-bottom: 15px;
+                    line-height: 1.7;
+                    color: #ccc;
+                }
+                
+                .intro-text a {
+                    color: #00ffff;
+                    text-decoration: none;
+                }
+                
+                .intro-text a:hover {
+                    text-decoration: underline;
+                }
+                
+                .features {
+                    margin: 20px 0;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 12px;
+                }
+                
+                .feature {
+                    background-color: #333;
+                    padding: 12px;
+                    border-radius: 6px;
+                    border-left: 3px solid #00ff00;
+                    color: #ddd;
+                    font-size: 0.95em;
+                }
+                
+                .quick-links {
+                    margin-top: 20px;
+                    text-align: center;
+                }
+                
+                .quick-links .btn {
+                    margin: 0 8px;
                 }
                 
                 .server-grid {
@@ -286,6 +340,17 @@ class MCPDashboard:
                     color: #1a1a1a;
                 }
                 
+                .btn-secondary {
+                    border-color: #00ffff;
+                    color: #00ffff;
+                    background-color: #1a1a1a;
+                }
+                
+                .btn-secondary:hover {
+                    background-color: #00ffff;
+                    color: #1a1a1a;
+                }
+                
                 .btn-danger {
                     border-color: #ff4444;
                     color: #ff4444;
@@ -332,6 +397,30 @@ class MCPDashboard:
             <div class="container">
                 <h1>🎮 MCP STATE OF PLAY 🎮</h1>
                 <div class="subtitle">Multi-Server Game Dashboard</div>
+                
+                <div class="intro-section">
+                    <div class="intro-text">
+                        <p>Welcome to the <strong>MCP State of Play</strong> dashboard! This interface monitors multiple 
+                        <a href="https://github.com/modelcontextprotocol/servers" target="_blank">Model Context Protocol (MCP)</a> 
+                        game servers running text-based adventure games.</p>
+                        
+                        <p>Each server hosts an independent game world that AI clients can connect to and interact with using 
+                        natural language. Players can explore rooms, collect items, talk to NPCs, and solve puzzles through 
+                        MCP tool calls.</p>
+                        
+                        <div class="features">
+                            <div class="feature">🎯 <strong>Multi-Server Architecture:</strong> Each game runs in its own container</div>
+                            <div class="feature">🔄 <strong>Real-time Monitoring:</strong> Live game state updates from all servers</div>
+                            <div class="feature">🤖 <strong>MCP Protocol:</strong> Direct AI client integration via streamable HTTP</div>
+                            <div class="feature">🎲 <strong>Multiple Games:</strong> Laboratory escape, simple adventures, dungeon crawlers</div>
+                        </div>
+                        
+                        <div class="quick-links">
+                            <a href="/about" class="btn btn-secondary">📖 About This Project</a>
+                            <a href="https://github.com/CGAST/mcp-state-of-play" target="_blank" class="btn btn-secondary">🔗 View on GitHub</a>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="controls">
                     <button class="btn" onclick="refreshServers()">🔄 Refresh Servers</button>
@@ -458,6 +547,297 @@ class MCPDashboard:
                     }
                 });
             </script>
+        </body>
+        </html>
+        """
+
+    def _get_about_html(self) -> str:
+        """Generate about page HTML"""
+        return """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>About - MCP State of Play</title>
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                
+                body {
+                    font-family: 'Courier New', monospace;
+                    background-color: #1a1a1a;
+                    color: #00ff00;
+                    line-height: 1.6;
+                    padding: 20px;
+                }
+                
+                .container {
+                    max-width: 1000px;
+                    margin: 0 auto;
+                }
+                
+                .header {
+                    text-align: center;
+                    margin-bottom: 40px;
+                }
+                
+                h1 {
+                    color: #00ffff;
+                    text-shadow: 0 0 10px #00ffff;
+                    font-size: 2.5em;
+                    margin-bottom: 10px;
+                }
+                
+                .subtitle {
+                    color: #888;
+                    font-size: 1.2em;
+                    margin-bottom: 20px;
+                }
+                
+                .back-nav {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+                
+                .btn {
+                    background-color: #333;
+                    color: #00ff00;
+                    border: 1px solid #00ff00;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-family: inherit;
+                    text-decoration: none;
+                    display: inline-block;
+                    transition: all 0.3s ease;
+                }
+                
+                .btn:hover {
+                    background-color: #00ff00;
+                    color: #1a1a1a;
+                }
+                
+                .content-section {
+                    background-color: #2a2a2a;
+                    border: 1px solid #444;
+                    border-radius: 8px;
+                    padding: 30px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+                }
+                
+                .content-section h2 {
+                    color: #ffff00;
+                    margin-bottom: 20px;
+                    font-size: 1.5em;
+                    border-bottom: 2px solid #444;
+                    padding-bottom: 10px;
+                }
+                
+                .content-section p {
+                    margin-bottom: 15px;
+                    color: #ccc;
+                    line-height: 1.7;
+                }
+                
+                .content-section a {
+                    color: #00ffff;
+                    text-decoration: none;
+                }
+                
+                .content-section a:hover {
+                    text-decoration: underline;
+                }
+                
+                .tech-stack {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 15px;
+                    margin: 20px 0;
+                }
+                
+                .tech-item {
+                    background-color: #333;
+                    padding: 15px;
+                    border-radius: 6px;
+                    border-left: 4px solid #00ff00;
+                }
+                
+                .tech-item h3 {
+                    color: #00ffff;
+                    margin-bottom: 8px;
+                    font-size: 1.1em;
+                }
+                
+                .tech-item p {
+                    color: #aaa;
+                    font-size: 0.9em;
+                    margin: 0;
+                }
+                
+                .features-list {
+                    list-style: none;
+                    padding: 0;
+                }
+                
+                .features-list li {
+                    background-color: #333;
+                    margin-bottom: 10px;
+                    padding: 12px;
+                    border-radius: 6px;
+                    border-left: 4px solid #00ff00;
+                    color: #ddd;
+                }
+                
+                .features-list li strong {
+                    color: #00ffff;
+                }
+                
+                .links-section {
+                    text-align: center;
+                    margin-top: 30px;
+                }
+                
+                .links-section .btn {
+                    margin: 0 10px 10px 10px;
+                }
+                
+                .btn-primary {
+                    border-color: #00ffff;
+                    color: #00ffff;
+                }
+                
+                .btn-primary:hover {
+                    background-color: #00ffff;
+                    color: #1a1a1a;
+                }
+                
+                @media (max-width: 768px) {
+                    .tech-stack {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .links-section .btn {
+                        display: block;
+                        margin: 10px auto;
+                        max-width: 200px;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🎮 MCP STATE OF PLAY 🎮</h1>
+                    <div class="subtitle">About This Project</div>
+                </div>
+                
+                <div class="back-nav">
+                    <a href="/" class="btn">← Back to Dashboard</a>
+                </div>
+                
+                <div class="content-section">
+                    <h2>🚀 Project Overview</h2>
+                    <p><strong>MCP State of Play</strong> is a demonstration of the <a href="https://github.com/modelcontextprotocol/servers" target="_blank">Model Context Protocol (MCP)</a> in action, showcasing how AI clients can interact with multiple independent game servers through a standardized protocol.</p>
+                    
+                    <p>This project implements a multi-container architecture where each game server runs as a separate MCP-compliant service, allowing AI assistants like Claude to connect and play text-based adventure games using natural language commands.</p>
+                    
+                    <p>The system demonstrates practical MCP usage patterns including tool registration, state management, real-time monitoring, and multi-server coordination - all while providing an engaging interactive gaming experience.</p>
+                </div>
+                
+                <div class="content-section">
+                    <h2>🏗️ Architecture</h2>
+                    <p>The system uses a microservices architecture with the following components:</p>
+                    
+                    <div class="tech-stack">
+                        <div class="tech-item">
+                            <h3>🎯 MCP Game Servers</h3>
+                            <p>Individual FastMCP servers hosting text adventures, each exposing game tools via streamable HTTP</p>
+                        </div>
+                        <div class="tech-item">
+                            <h3>📊 Dashboard Service</h3>
+                            <p>FastAPI web application for monitoring all game servers and their real-time state</p>
+                        </div>
+                        <div class="tech-item">
+                            <h3>🗄️ Redis Database</h3>
+                            <p>Centralized state storage for game worlds, player data, and event logging</p>
+                        </div>
+                        <div class="tech-item">
+                            <h3>🐳 Docker Containers</h3>
+                            <p>Each service runs in isolation with automatic service discovery and registration</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    <h2>✨ Features</h2>
+                    <ul class="features-list">
+                        <li><strong>Multi-Server Architecture:</strong> Each game runs in its own isolated container with independent state</li>
+                        <li><strong>MCP Protocol Compliance:</strong> Full implementation of streamable HTTP transport with tool registration</li>
+                        <li><strong>Real-time Monitoring:</strong> Live dashboard showing game state, player locations, and server status</li>
+                        <li><strong>Auto-Discovery:</strong> Servers automatically register with the dashboard on startup</li>
+                        <li><strong>Rich Game Worlds:</strong> Complex adventure scenarios with rooms, items, NPCs, and puzzle mechanics</li>
+                        <li><strong>Natural Language Interface:</strong> AI clients interact using conversational commands</li>
+                        <li><strong>Scalable Design:</strong> Easy to add new game servers and types</li>
+                        <li><strong>State Persistence:</strong> Game progress is saved and restored across container restarts</li>
+                    </ul>
+                </div>
+                
+                <div class="content-section">
+                    <h2>🛠️ Technology Stack</h2>
+                    <div class="tech-stack">
+                        <div class="tech-item">
+                            <h3>🐍 Python & FastMCP</h3>
+                            <p>Core server implementation using the FastMCP framework for MCP protocol support</p>
+                        </div>
+                        <div class="tech-item">
+                            <h3>⚡ FastAPI</h3>
+                            <p>Web framework for the dashboard API and real-time data endpoints</p>
+                        </div>
+                        <div class="tech-item">
+                            <h3>🔴 Redis</h3>
+                            <p>In-memory database for fast game state storage and cross-service communication</p>
+                        </div>
+                        <div class="tech-item">
+                            <h3>🐳 Docker Compose</h3>
+                            <p>Container orchestration with custom networking and service dependencies</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    <h2>🎲 Available Games</h2>
+                    <ul class="features-list">
+                        <li><strong>Laboratory Escape:</strong> A sci-fi thriller where players must escape a mysterious research facility by finding key fragments and solving security puzzles</li>
+                        <li><strong>Simple Adventure:</strong> A beginner-friendly quest through meadows and cottages to discover hidden treasure</li>
+                        <li><strong>Dungeon Crawler:</strong> A fantasy adventure featuring monsters, magic, and a final dragon boss battle</li>
+                    </ul>
+                </div>
+                
+                <div class="content-section">
+                    <h2>🔧 How It Works</h2>
+                    <p><strong>1. MCP Server Registration:</strong> Each game server starts up and automatically registers itself with the dashboard, providing metadata about its game world.</p>
+                    
+                    <p><strong>2. AI Client Connection:</strong> AI assistants connect to individual game servers using the MCP streamable HTTP protocol, gaining access to game-specific tools.</p>
+                    
+                    <p><strong>3. Tool-Based Interaction:</strong> Clients use MCP tools like <code>move_player()</code>, <code>take_item()</code>, and <code>talk_to_npc()</code> to interact with the game world.</p>
+                    
+                    <p><strong>4. State Management:</strong> All game state is persisted to Redis, allowing for complex interactions, save/restore functionality, and real-time monitoring.</p>
+                    
+                    <p><strong>5. Dashboard Monitoring:</strong> The web dashboard provides a unified view of all active games, showing player locations, inventory, world maps, and recent activity.</p>
+                </div>
+                
+                <div class="links-section">
+                    <a href="https://github.com/CGAST/mcp-state-of-play" target="_blank" class="btn btn-primary">🔗 View on GitHub</a>
+                    <a href="https://github.com/modelcontextprotocol/servers" target="_blank" class="btn btn-primary">📚 Learn About MCP</a>
+                    <a href="https://fastmcp.io" target="_blank" class="btn btn-primary">⚡ FastMCP Framework</a>
+                    <a href="/" class="btn">🏠 Back to Dashboard</a>
+                </div>
+            </div>
         </body>
         </html>
         """
